@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TODO List</title>
+</head>
+<body>
+    <button id="loadButton">Получить список</button>
+    <table id="todoTable" border="1">
+        <thead>
+            <tr>
+                <th>№</th>
+                <th>Пользователь</th>
+                <th>Задача</th>
+                <th>Выполнено</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        document.getElementById('loadButton').addEventListener('click', function() {
+            let xhrTodos = new XMLHttpRequest();
+            let xhrUsers = new XMLHttpRequest();
+
+            xhrTodos.open('GET', 'https://jsonplaceholder.typicode.com/todos', true);
+            xhrUsers.open('GET', 'https://jsonplaceholder.typicode.com/users', true);
+
+            xhrTodos.onload = function() {
+                if (xhrTodos.status === 200) {
+                    let todos = JSON.parse(xhrTodos.responseText);
+
+                    xhrUsers.onload = function() {
+                        if (xhrUsers.status === 200) {
+                            let users = JSON.parse(xhrUsers.responseText);
+
+                            let tbody = document.querySelector('#todoTable tbody');
+                            tbody.innerHTML = ''; // Очистка таблицы перед добавлением новых данных
+
+                            todos.forEach((todo, index) => {
+                                let user = users.find(user => user.id === todo.userId);
+                                let row = document.createElement('tr');
+
+                                row.innerHTML = `
+                                    <td>${index + 1}</td>
+                                    <td>${user ? user.name : 'Не найден'}</td>
+                                    <td>${todo.title}</td>
+                                    <td><input type="checkbox" ${todo.completed ? 'checked' : ''} disabled /></td>
+                                `;
+
+                                tbody.append(row);
+                            });
+                        }
+                    };
+
+                    xhrUsers.send();
+                }
+            };
+
+            xhrTodos.send();
+        });
+    </script>
+</body>
+</html>
